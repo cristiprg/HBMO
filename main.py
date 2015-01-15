@@ -14,21 +14,14 @@
 __author__ = 'cristiprg'
 
 import InitialSolutionsGenerator
-import Solution
+from Solution import Solution
 
 solutions = InitialSolutionsGenerator.generateInitialSolutions()
 
-"""
-for i in solutions:
-    print("f" + str(i) + "=", end=' ')
-    print(Solution.FUNCTIA(i.x, i.y))
-"""
-
-
 queen = solutions[0]
+print(str(queen) + ".fitness = " + str(queen.getFitness()))
 
-print("f" + str(queen) + " = " + str(Solution.FUNCTIA(queen.x, queen.y)))
-
+bestSolution = Solution()
 while queen.energy >= 0:
     for (index, drone) in enumerate(solutions):
         if index is 0:  # this the queen actually
@@ -36,5 +29,19 @@ while queen.energy >= 0:
 
         if queen.probabilityToMateDrone(drone) > queen.probabilityToMateDroneThreshold:
             broods = queen.createBroods(drone)
+            if len(broods) is 0:
+                continue
+
+            bestBrood = broods[0]
             # Improve broods here!
+            if bestBrood.getFitness() < bestSolution.getFitness():
+                bestSolution = bestBrood
+                print("Found better!")
+                print(str(bestSolution) + "\nfitness = " + str(bestSolution.getFitness()))
+
+        else:
+            pass
+
     queen.nextIteration()
+
+print("best solution:" + str(bestSolution) + "\nfitness = " + str(bestSolution.getFitness()))

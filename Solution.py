@@ -3,6 +3,7 @@
 """
 __author__ = 'cristiprg'
 
+from sortedcontainers import SortedSet  # http://www.grantjenks.com/docs/sortedcontainers/sortedset.html
 import math
 import random
 
@@ -23,13 +24,13 @@ class Solution:
         self.x = x or 0
         self.y = y or 0
 
-        self.speedReductionFactor = 0.9  # S(t+1) = alpha * S(t), deci, intre 0 si 1 (pag 665)
-        self.energyReductionAmount = 2  # E(t+1) = E(t) - gamma, deci intre 0 si 100? Gandim in procente aici?
+        self.speedReductionFactor = 0.5  # S(t+1) = alpha * S(t), deci, intre 0 si 1 (pag 665)
+        self.energyReductionAmount = 45  # E(t+1) = E(t) - gamma, deci intre 0 si 100? Gandim in procente aici?
 
         self.speed = 100  # ???
         self.energy = 100  # 100%???
 
-        self.probabilityToMateDroneThreshold = 0.5
+        self.probabilityToMateDroneThreshold = 0.10
 
     def __lt__(self, other):
         if isinstance(other, Solution):
@@ -41,9 +42,12 @@ class Solution:
         """
         :return:
             The fitness function of this solution.
-            Acuma, o consideram diferenta fata de 0.
+            Acuma, o consideram diferenta fata de 0, pentru ca stim deja ca minimul e 0 ... si care mai ii rostu' atunci?
+            INTREBARE: ce functie de fitness am alege daca nu stim ca raspunsul este 0?
+
+            V2: tot functia lui Gauss daca tot stim ca raspunsul (parametrul b) este 0.
         """
-        return abs(FUNCTIA(self.x, self.y))
+        return math.exp(-(FUNCTIA(self.x,self.y)**2)/100)  # c=100 ca sa fie numere mai normale
 
     def probabilityToMateDrone(self, drone):
         """
@@ -79,10 +83,34 @@ class Solution:
         return int(self.energy * drone.getFitness() * random.uniform(0, 1))
 
     def createBroods(self, drone):
+        """
+        Provides a set of solutions derived from this queen. Runs the genotypes combination
+        algorithm for each new brood.
+        :param drone:
+        :return: A sorted set of solutions.
+        """
+        if not isinstance(drone, Solution):
+            raise Exception("Drone not of type Solution")
+
         nr_broods = self.numberOfBroodsWithDrone(drone)
-        print("Creating" + str(nr_broods) + " broods")
+        broods = SortedSet()
 
+        for i in range(nr_broods-1):
+            brood = self.combineGenotypes(drone)
+            broods.add(brood)
 
+        return broods
+
+    def combineGenotypes(self, drone):
+        """
+        Runs the genotypes combination algorithm for this queen and the drone.
+        :param drone:
+        :return: A new solution (brood).
+        """
+
+        x = self.x if random.getrandbits(1) else drone.x
+        y = self.y if random.getrandbits(1) else drone.y
+        return Solution(x, y)
 
     def __str__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
