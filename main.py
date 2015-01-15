@@ -13,35 +13,46 @@
 
 __author__ = 'cristiprg'
 
+import cProfile
 import InitialSolutionsGenerator
 from Solution import Solution
+from Solution import FUNCTIA
 
-solutions = InitialSolutionsGenerator.generateInitialSolutions()
+def runHBMO():
 
-queen = solutions[0]
-print(str(queen) + ".fitness = " + str(queen.getFitness()))
+    # Generate the initial set of solutions.
+    solutions = InitialSolutionsGenerator.generateInitialSolutions()
 
-bestSolution = Solution()
-while queen.energy >= 0:
-    for (index, drone) in enumerate(solutions):
-        if index is 0:  # this the queen actually
-            continue
+    # Select the queen.
+    queen = solutions[0]
+    print(str(queen) + ".fitness = " + str(queen.getFitness()))
 
-        if queen.probabilityToMateDrone(drone) > queen.probabilityToMateDroneThreshold:
-            broods = queen.createBroods(drone)
-            if len(broods) is 0:
+    bestSolution = Solution()
+    while queen.energy >= 0:
+        for (index, drone) in enumerate(solutions):
+            if index is 0:  # this the queen actually
                 continue
 
-            bestBrood = broods[0]
-            # Improve broods here!
-            if bestBrood.getFitness() < bestSolution.getFitness():
-                bestSolution = bestBrood
-                print("Found better!")
-                print(str(bestSolution) + "\nfitness = " + str(bestSolution.getFitness()))
+            if queen.probabilityToMateDrone(drone) > queen.probabilityToMateDroneThreshold:
+                broods = queen.createBroods(drone)
+                if len(broods) is 0:
+                    continue
 
-        else:
-            pass
+                bestBrood = broods[0]
+                # Improve broods here, ca se blocheaza in minim local!
+                if bestBrood.getFitness() < bestSolution.getFitness():
+                    bestSolution = bestBrood
+                    print("Found better!")
+                    print(str(bestSolution) + " =  " + str(FUNCTIA(bestSolution.x, bestSolution.y)) +
+                          "\nfitness = " + str(bestSolution.getFitness()))
 
-    queen.nextIteration()
+            else:
+                pass
 
-print("best solution:" + str(bestSolution) + "\nfitness = " + str(bestSolution.getFitness()))
+        queen = bestSolution  # Cu asta se reseteaza si conditia de oprire!
+        queen.nextIteration()
+
+    print(str(bestSolution) + " =  " + str(FUNCTIA(bestSolution.x, bestSolution.y)) +
+          "\nfitness = " + str(bestSolution.getFitness()))
+
+cProfile.run('runHBMO()', sort='tottime')
